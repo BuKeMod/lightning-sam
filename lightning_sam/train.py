@@ -164,8 +164,8 @@ def main(cfg: Box) -> None:
 
 #######################
 if __name__ == "__main__":
-from box import Box
-import argparse
+    from box import Box
+    import argparse
 
     def create_parser():
         parser = argparse.ArgumentParser(description='Your program description')
