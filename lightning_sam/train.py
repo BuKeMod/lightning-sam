@@ -204,7 +204,7 @@ if __name__ == "__main__":
 
     def create_parser():
         parser = argparse.ArgumentParser(description='Your program description')
-        parser.add_argument('--config', type=str, default=None, help='Config JSON string')
+
         # Training configuration
         parser.add_argument('--num_devices', type=int, default=1, help='Number of devices')
         parser.add_argument('--batch_size', type=int, default=12, help='Batch size')
@@ -232,8 +232,45 @@ if __name__ == "__main__":
         parser.add_argument('--train_annotation_file', type=str, default='/kaggle/working/Crop-Fields-LOD-13-14-15-4/train/sa_Tannotationscoco.json', help='Annotation file for training data')
         parser.add_argument('--val_root_dir', type=str, default='/kaggle/working/Crop-Fields-LOD-13-14-15-4/valid', help='Root directory for validation data')
         parser.add_argument('--val_annotation_file', type=str, default='/kaggle/working/Crop-Fields-LOD-13-14-15-4/valid/sa_Vannotationscoco.json', help='Annotation file for validation data')
-    
-        return parser
+
+
+        config = {
+                "num_devices": args.num_devices,
+                "batch_size": args.batch_size,
+                "num_workers": args.num_workers,
+                "num_epochs": args.num_epochs,
+                "eval_interval": args.eval_interval,
+                "out_dir": args.out_dir,
+                "opt": {
+                    "learning_rate": args.learning_rate,
+                    "weight_decay": args.weight_decay,
+                    "decay_factor": args.decay_factor,
+                    "steps": args.steps,
+                    "warmup_steps": args.warmup_steps,
+                },
+                "model": {
+                    "type": args.model_type,
+                    "checkpoint": args.checkpoint,
+                    "freeze": {
+                        "image_encoder": args.freeze_image_encoder,
+                        "prompt_encoder": args.freeze_prompt_encoder,
+                        "mask_decoder": args.freeze_mask_decoder,
+                    },
+                },
+                "dataset": {
+                    "train": {
+                        "root_dir": args.train_root_dir,
+                        "annotation_file": args.train_annotation_file
+                    },
+                    "val": {
+                        "root_dir": args.val_root_dir,
+                        "annotation_file": args.val_annotation_file
+                    }
+                }
+            }
+
+        
+        return config
 
 
    
@@ -249,15 +286,16 @@ if __name__ == "__main__":
 
   
     parser = create_parser()
-    print('p ',parser)
-    print('\n')
-    print('\n')
-    args = parser.parse_args()
-    print('a ',args)
-    cfg = Box(vars(args))  # แปลง Namespace เป็น dictionary แล้วใช้ Box กลับไป
-    print('\n')
-    print('\n')
-    print('c ',cfg)
+    cfg = Box(parser)
+    # print('p ',parser)
+    # print('\n')
+    # print('\n')
+    # args = parser.parse_args()
+    # print('a ',args)
+    # cfg = Box(vars(args))  # แปลง Namespace เป็น dictionary แล้วใช้ Box กลับไป
+    # print('\n')
+    # print('\n')
+    # print('c ',cfg)
     
     main(cfg)
 
