@@ -1,18 +1,4 @@
 from box import Box
-print('num_devices : ')
-num_devices = input()
-
-print('batch_size : ')
-batch_size = input()
-
-print('num_workers : ')
-num_workers = input()
-
-print('num_epochs : ')
-num_epochs = input()
-
-print('eval_interval : ')
-eval_interval = input()
 
 config = {
     "num_devices": num_devices,
