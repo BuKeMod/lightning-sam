@@ -287,7 +287,7 @@ if __name__ == "__main__":
   
     parser = create_parser()
     cfg = Box(parser)
-    # print('p ',parser)
+    print('p ',parser)
     # print('\n')
     # print('\n')
     # args = parser.parse_args()
