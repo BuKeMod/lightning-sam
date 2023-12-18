@@ -250,7 +250,7 @@ if __name__ == "__main__":
 
     parser = create_parser()
     args = parser.parse_args()
-    cfg = load_config(args.config)
+    cfg = load_config(args.parser)
 
     cfg = Box(cfg)
     main(cfg)
