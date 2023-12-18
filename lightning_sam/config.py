@@ -1,7 +1,7 @@
 from box import Box
 
 config = {
-    "num_devices": num_devices,
+    "num_devices": 2,
     "batch_size": 12,
     "num_workers": 4,
     "num_epochs": 20,
