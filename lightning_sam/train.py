@@ -166,7 +166,7 @@ def main(cfg: Box) -> None:
 if __name__ == "__main__":
     from box import Box
     import argparse
-    config = {
+    config2 = {
         "num_devices": 2,
         "batch_size": 12,
         "num_workers": 4,
@@ -204,7 +204,7 @@ if __name__ == "__main__":
 
     def create_parser():
         parser = argparse.ArgumentParser(description='Your program description')
-        parser.add_argument('--config', type=str, default=config, help='Config JSON string')
+        parser.add_argument('--config', type=str, default=None, help='Config JSON string')
         # Training configuration
         parser.add_argument('--num_devices', type=int, default=1, help='Number of devices')
         parser.add_argument('--batch_size', type=int, default=12, help='Batch size')
