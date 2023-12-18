@@ -16,7 +16,7 @@ config = {
     },
     "model": {
         "type": 'vit_b',
-        "checkpoint": "/kaggle/working/sam_vit_b_qkv.pth",
+        "checkpoint": "/kaggle/working/sam_vit_b_01ec64.pth",
         "freeze": {
             "image_encoder": True,
             "prompt_encoder": True,
