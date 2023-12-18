@@ -251,7 +251,7 @@ if __name__ == "__main__":
     parser = create_parser()
     print(parser)
     args = parser.parse_args()
-    cfg = Box(vars(args))  # แปลง Namespace เป็น dictionary แล้วใช้ Box กลับไป
+    cfg = Box(vars(args)['config'])  # แปลง Namespace เป็น dictionary แล้วใช้ Box กลับไป
     print('\n')
     print('\n')
     print(cfg)
