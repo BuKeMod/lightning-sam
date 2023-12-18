@@ -1,7 +1,21 @@
 from box import Box
+print('num_devices : ')
+num_devices = input()
+
+print('batch_size : ')
+batch_size = input()
+
+print('num_workers : ')
+num_workers = input()
+
+print('num_epochs : ')
+num_epochs = input()
+
+print('eval_interval : ')
+eval_interval = input()
 
 config = {
-    "num_devices": 2,
+    "num_devices": num_devices,
     "batch_size": 12,
     "num_workers": 4,
     "num_epochs": 20,
@@ -15,7 +29,7 @@ config = {
         "warmup_steps": 250,
     },
     "model": {
-        "type": 'vit_h',
+        "type": 'vit_b',
         "checkpoint": "/kaggle/working/sam_vit_b_qkv.pth",
         "freeze": {
             "image_encoder": True,
