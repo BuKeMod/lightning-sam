@@ -247,9 +247,11 @@ if __name__ == "__main__":
         else:
             raise ValueError("Invalid config_path type. It should be either a dictionary or a JSON string.")
 
-
+  
     parser = create_parser()
+    print(parser)
     args = parser.parse_args()
+    print(args)
     cfg = load_config(args.parser)
 
     cfg = Box(cfg)
