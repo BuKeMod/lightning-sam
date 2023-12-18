@@ -238,14 +238,14 @@ if __name__ == "__main__":
 
    
     def load_config(config_path):
-    if isinstance(config_path, dict):
-        # If config_path is already a dictionary, return it directly
-        return Box(config_path)
-    elif isinstance(config_path, str):
-        # If config_path is a string, assume it's a JSON string and convert it to a dictionary
-        return Box.from_json(config_path)
-    else:
-        raise ValueError("Invalid config_path type. It should be either a dictionary or a JSON string.")
+        if isinstance(config_path, dict):
+            # If config_path is already a dictionary, return it directly
+            return Box(config_path)
+        elif isinstance(config_path, str):
+            # If config_path is a string, assume it's a JSON string and convert it to a dictionary
+            return Box.from_json(config_path)
+        else:
+            raise ValueError("Invalid config_path type. It should be either a dictionary or a JSON string.")
 
 
     parser = create_parser()
