@@ -254,5 +254,5 @@ if __name__ == "__main__":
     print(args)
     # cfg = load_config(args.parser)
 
-    cfg = Box(args)
+    cfg = Box(vars(args))
     main(cfg)
