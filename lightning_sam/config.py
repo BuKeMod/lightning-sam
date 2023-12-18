@@ -6,7 +6,7 @@ config = {
     "num_workers": 4,
     "num_epochs": 20,
     "eval_interval": 2,
-    "out_dir": "out/training",
+    "out_dir": "/kaggle/working/training",
     "opt": {
         "learning_rate": 8e-4,
         "weight_decay": 1e-4,
@@ -16,7 +16,7 @@ config = {
     },
     "model": {
         "type": 'vit_h',
-        "checkpoint": "sam_vit_b_qkv.pth",
+        "checkpoint": "/kaggle/working/sam_vit_b_qkv.pth",
         "freeze": {
             "image_encoder": True,
             "prompt_encoder": True,
