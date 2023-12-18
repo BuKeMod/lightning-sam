@@ -163,7 +163,10 @@ def main(cfg: Box) -> None:
     validate(fabric, model, val_data, epoch=0)
 
 ######
-    config1 = {
+if __name__ == "__main__":
+    from box import Box
+    import argparse
+    config1 = '{
         "num_devices": 2,
         "batch_size": 12,
         "num_workers": 4,
@@ -196,11 +199,8 @@ def main(cfg: Box) -> None:
                 "annotation_file": "/kaggle/working/Crop-Fields-LOD-13-14-15-4/valid/sa_Vannotationscoco.json"
             }
         }
-    }
-#######################
-if __name__ == "__main__":
-    from box import Box
-    import argparse
+    }'
+
 
     def create_parser():
         parser = argparse.ArgumentParser(description='Your program description')
@@ -246,5 +246,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
     cfg = load_config(args.config1)
 
-
+    cfg = Box(cfg)
     main(cfg)
