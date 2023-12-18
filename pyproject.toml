@@ -3,7 +3,7 @@ name = "lightning-sam"
 version = "0.1.0"
 description = "Finetune segment-anything"
 readme = "README.md"
-documentation = ""
+documentation = "https://github.com/luca-medeiros/lightning-sam-docs"
 repository = "https://github.com/luca-medeiros/lightning-sam"
 authors = [
   "Luca Medeiros <lucamedeiros@outlook.com>",
