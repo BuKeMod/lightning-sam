@@ -249,15 +249,15 @@ if __name__ == "__main__":
 
   
     parser = create_parser()
-    print(parser)
+    print('p ',parser)
     print('\n')
     print('\n')
     args = parser.parse_args()
-    print(args)
+    print('a ',args)
     cfg = Box(vars(args)['config'])  # แปลง Namespace เป็น dictionary แล้วใช้ Box กลับไป
     print('\n')
     print('\n')
-    print(cfg)
+    print('c ',cfg)
     
     main(cfg)
 
