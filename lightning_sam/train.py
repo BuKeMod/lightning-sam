@@ -166,7 +166,7 @@ def main(cfg: Box) -> None:
 if __name__ == "__main__":
     from box import Box
     import argparse
-    config1 = '{
+    config1 = {
         "num_devices": 2,
         "batch_size": 12,
         "num_workers": 4,
@@ -199,7 +199,7 @@ if __name__ == "__main__":
                 "annotation_file": "/kaggle/working/Crop-Fields-LOD-13-14-15-4/valid/sa_Vannotationscoco.json"
             }
         }
-    }'
+    }
 
 
     def create_parser():
