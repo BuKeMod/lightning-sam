@@ -16,7 +16,7 @@ config = {
     },
     "model": {
         "type": 'vit_h',
-        "checkpoint": "sam_vit_h_4b8939.pth",
+        "checkpoint": "sam_vit_b_qkv.pth",
         "freeze": {
             "image_encoder": True,
             "prompt_encoder": True,
@@ -25,12 +25,12 @@ config = {
     },
     "dataset": {
         "train": {
-            "root_dir": "/coco/coco2017/train2017",
-            "annotation_file": "/coco/coco2017/annotations/instances_train2017.json"
+            "root_dir": "/kaggle/working/Crop-Fields-LOD-13-14-15-4/train",
+            "annotation_file": "/kaggle/working/Crop-Fields-LOD-13-14-15-4/train/sa_Tannotationscoco.json"
         },
         "val": {
-            "root_dir": "/coco/coco2017/val2017",
-            "annotation_file": "/coco/coco2017/annotations/instances_val2017.json"
+            "root_dir": "/kaggle/working/Crop-Fields-LOD-13-14-15-4/valid",
+            "annotation_file": "/kaggle/working/Crop-Fields-LOD-13-14-15-4/valid/sa_Vannotationscoco.json"
         }
     }
 }
