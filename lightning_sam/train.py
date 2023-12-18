@@ -162,6 +162,18 @@ def main(cfg: Box) -> None:
     train_sam(cfg, fabric, model, optimizer, scheduler, train_data, val_data)
     validate(fabric, model, val_data, epoch=0)
 
+import argparse
+
+# สร้าง argparse.ArgumentParser
+parser = argparse.ArgumentParser(description='โปรแกรมตัวอย่าง')
+
+# เพิ่มอาร์กิวเมนต์
+parser.add_argument('--cfg', type=dict, help='พาธไฟล์นำเข้า')
+args = parser.parse_args()
+cfg = args.cfg
+from box import Box
+cfg = Box(cfg)
 
 if __name__ == "__main__":
+    
     main(cfg)
