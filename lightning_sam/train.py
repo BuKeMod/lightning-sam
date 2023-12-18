@@ -162,18 +162,54 @@ def main(cfg: Box) -> None:
     train_sam(cfg, fabric, model, optimizer, scheduler, train_data, val_data)
     validate(fabric, model, val_data, epoch=0)
 
+#######################
+if __name__ == "__main__":
+from box import Box
 import argparse
 
-# สร้าง argparse.ArgumentParser
-parser = argparse.ArgumentParser(description='โปรแกรมตัวอย่าง')
-
-# เพิ่มอาร์กิวเมนต์
-parser.add_argument('--cfg', type=dict, help='พาธไฟล์นำเข้า')
-args = parser.parse_args()
-cfg = args.cfg
-from box import Box
-cfg = Box(cfg)
-
-if __name__ == "__main__":
+    def create_parser():
+        parser = argparse.ArgumentParser(description='Your program description')
     
+        # Training configuration
+        parser.add_argument('--num_devices', type=int, default=1, help='Number of devices')
+        parser.add_argument('--batch_size', type=int, default=12, help='Batch size')
+        parser.add_argument('--num_workers', type=int, default=4, help='Number of workers')
+        parser.add_argument('--num_epochs', type=int, default=20, help='Number of epochs')
+        parser.add_argument('--eval_interval', type=int, default=2, help='Evaluation interval')
+        parser.add_argument('--out_dir', type=str, default='/kaggle/working/training', help='Output directory')
+    
+        # Optimization configuration
+        parser.add_argument('--learning_rate', type=float, default=8e-4, help='Learning rate')
+        parser.add_argument('--weight_decay', type=float, default=1e-4, help='Weight decay')
+        parser.add_argument('--decay_factor', type=int, default=10, help='Decay factor')
+        parser.add_argument('--steps', type=list, default=[60000, 86666], help='Steps')
+        parser.add_argument('--warmup_steps', type=int, default=250, help='Warmup steps')
+    
+        # Model configuration
+        parser.add_argument('--model_type', type=str, default='vit_b', help='Type of the model')
+        parser.add_argument('--checkpoint', type=str, default='/kaggle/working/sam_vit_b_01ec64.pth', help='Checkpoint file path')
+        parser.add_argument('--freeze_image_encoder', type=bool, default=True, help='Freeze image encoder')
+        parser.add_argument('--freeze_prompt_encoder', type=bool, default=True, help='Freeze prompt encoder')
+        parser.add_argument('--freeze_mask_decoder', type=bool, default=False, help='Freeze mask decoder')
+    
+        # Dataset configuration
+        parser.add_argument('--train_root_dir', type=str, default='/kaggle/working/Crop-Fields-LOD-13-14-15-4/train', help='Root directory for training data')
+        parser.add_argument('--train_annotation_file', type=str, default='/kaggle/working/Crop-Fields-LOD-13-14-15-4/train/sa_Tannotationscoco.json', help='Annotation file for training data')
+        parser.add_argument('--val_root_dir', type=str, default='/kaggle/working/Crop-Fields-LOD-13-14-15-4/valid', help='Root directory for validation data')
+        parser.add_argument('--val_annotation_file', type=str, default='/kaggle/working/Crop-Fields-LOD-13-14-15-4/valid/sa_Vannotationscoco.json', help='Annotation file for validation data')
+    
+        return parser
+
+
+   
+    def load_config(config_path):
+        with open(config_path, 'r') as f:
+            config = Box.from_json(f.read())
+        return config
+
+    parser = create_parser()
+    args = parser.parse_args()
+    cfg = load_config(args.config_file)
+
+
     main(cfg)
