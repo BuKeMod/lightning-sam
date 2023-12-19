@@ -193,9 +193,9 @@ if __name__ == "__main__":
         parser.add_argument('--freeze_mask_decoder', type=bool, default=False, help='Freeze mask decoder')
     
         # Dataset configuration
-        parser.add_argument('--train_root_dir', type=str, default='/kaggle/working/Crop-Fields-LOD-13-14-15-4/train', help='Root directory for training data')
+        parser.add_argument('--train_root_dir', type=str, default='/kaggle/working/Crop-Fields-LOD-13-14-15-4/train/', help='Root directory for training data')
         parser.add_argument('--train_annotation_file', type=str, default='/kaggle/working/Crop-Fields-LOD-13-14-15-4/train/sa_Tannotationscoco.json', help='Annotation file for training data')
-        parser.add_argument('--val_root_dir', type=str, default='/kaggle/working/Crop-Fields-LOD-13-14-15-4/valid', help='Root directory for validation data')
+        parser.add_argument('--val_root_dir', type=str, default='/kaggle/working/Crop-Fields-LOD-13-14-15-4/valid/', help='Root directory for validation data')
         parser.add_argument('--val_annotation_file', type=str, default='/kaggle/working/Crop-Fields-LOD-13-14-15-4/valid/sa_Vannotationscoco.json', help='Annotation file for validation data')
 
         args = parser.parse_args()
