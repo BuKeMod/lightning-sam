@@ -241,7 +241,7 @@ def main(cfg: Box) -> None:
         loggers=[TensorBoardLogger(cfg.out_dir, name="lightning-sam")]
     )
 
-    fabric.launch(partial(train_fn, cfg), epoch=your_epoch_value)
+    fabric.launch(partial(train_fn, cfg), epoch=cfg.num_epochs)
 
 
 
