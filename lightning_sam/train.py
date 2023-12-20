@@ -149,10 +149,19 @@ def configure_opt(cfg: Box, model: Model):
 
 
 def main(cfg: Box) -> None:
-    fabric = L.Fabric(accelerator="auto",
+    try:
+        fabric = L.Fabric(accelerator="auto",
                       devices=cfg.num_devices,
                       strategy="auto",
                       loggers=[TensorBoardLogger(cfg.out_dir, name="lightning-sam")])
+    except:
+        fabric = L.Fabric(
+                        accelerator="auto_tpu",  # เปลี่ยน accelerator เป็น "auto_tpu" เพื่อให้ Lightning ใช้ TPU อัตโนมัติ
+                        devices="auto",  # เปลี่ยน devices เป็น "auto" เพื่อให้ Lightning เลือกจำนวน TPU ที่พร้อมใช้งาน
+                        strategy="auto",
+                        loggers=[TensorBoardLogger(cfg.out_dir, name="lightning-sam")]
+                        )
+            
     fabric.launch()
     fabric.seed_everything(1337 + fabric.global_rank)
 
