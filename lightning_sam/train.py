@@ -53,7 +53,11 @@ def validate(fabric: L.Fabric, model: Model, val_dataloader: DataLoader, epoch: 
         torch.save(state_dict, os.path.join(cfg.out_dir, f"epoch-{epoch:06d}-f1{f1_scores.avg:.2f}-ckpt.pth"))
     model.train()
 
-
+###########
+def data_generator(data_loader):
+    for batch in data_loader:
+        yield batch
+##########
 def train_sam(
     cfg: Box,
     fabric: L.Fabric,
@@ -77,14 +81,21 @@ def train_sam(
         total_losses = AverageMeter()
         end = time.time()
         validated = False
-
+###########
+        train_data_generator = data_generator(train_dataloader)
+        # ลูปโดยใช้ Data Generator
+        for batch_data in train_data_generator:
+            # ทำสิ่งที่คุณต้องการกับ batch_data ที่ได้จาก Data Generator
+            images, bboxes, gt_masks = batch_data
+#############
+        
         for iter, data in enumerate(train_dataloader):
             if epoch > 1 and epoch % cfg.eval_interval == 0 and not validated:
                 validate(fabric, model, val_dataloader, epoch)
                 validated = True
 
             data_time.update(time.time() - end)
-            images, bboxes, gt_masks = data
+            # images, bboxes, gt_masks = data
             batch_size = images.size(0)
             pred_masks, iou_predictions = model(images, bboxes)
             num_masks = sum(len(pred_mask) for pred_mask in pred_masks)
@@ -237,31 +248,16 @@ if __name__ == "__main__":
 
         
         return config
-
-
-   
-    def load_config(config_path):
-        if isinstance(config_path, dict):
-            # If config_path is already a dictionary, return it directly
-            return Box(config_path)
-        elif isinstance(config_path, str):
-            # If config_path is a string, assume it's a JSON string and convert it to a dictionary
-            return Box.from_json(config_path)
-        else:
-            raise ValueError("Invalid config_path type. It should be either a dictionary or a JSON string.")
-
-  
+    def pretty(d, indent=0):
+       for key, value in d.items():
+          print('\t' * indent + str(key))
+          if isinstance(value, dict):
+             pretty(value, indent+1)
+          else:
+             print('\t' * (indent+1) + str(value))
     parser = create_parser()
     cfg = Box(parser)
-    print('p ',parser)
-    # print('\n')
-    # print('\n')
-    # args = parser.parse_args()
-    # print('a ',args)
-    # cfg = Box(vars(args))  # แปลง Namespace เป็น dictionary แล้วใช้ Box กลับไป
-    # print('\n')
-    # print('\n')
-    # print('c ',cfg)
-    
+    pretty(parser)
+
     main(cfg)
 
