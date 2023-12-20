@@ -237,7 +237,7 @@ def train_fn(cfg, fabric, epoch):
     validate(fabric, model, val_data, epoch)
 
 def main(cfg: Box) -> None:
-    fabric = L.TPUAccelerator(
+    fabric = L.Fabric(
         accelerator="tpu",
         devices="auto",
         strategy="xla",
