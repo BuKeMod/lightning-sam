@@ -155,6 +155,8 @@ def train_sam(
             iou_losses.update(loss_iou.item(), batch_size)
             total_losses.update(loss_total.item(), batch_size)
 
+            torch.cuda.empty_cache()
+            
             fabric.print(f'Epoch: [{epoch}][{iter+1}/{len(train_dataloader)}]'
                          f' | Time [{batch_time.val:.3f}s ({batch_time.avg:.3f}s)]'
                          f' | Data [{data_time.val:.3f}s ({data_time.avg:.3f}s)]'
@@ -332,9 +334,9 @@ if __name__ == "__main__":
     cfg = Box(parser)
     pretty(parser)
     
-    import torch
-    # ตั้งค่าขนาดเส้นผ่าศูนย์ (MB) สำหรับการแบ่ง Tensor
-    torch._C._cuda_split_tensor_max_size_MB = 300
+    # import torch
+    # # ตั้งค่าขนาดเส้นผ่าศูนย์ (MB) สำหรับการแบ่ง Tensor
+    # torch._C._cuda_split_tensor_max_size_MB = 300
     
     main(cfg)
 
