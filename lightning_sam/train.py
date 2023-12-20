@@ -209,7 +209,7 @@ def configure_opt(cfg: Box, model: Model):
 #     train_sam(cfg, fabric, model, optimizer, scheduler, train_data, val_data)
 #     validate(fabric, model, val_data, epoch=0)
 
-ffrom pytorch_lightning.loggers import TensorBoardLogger
+from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.utilities.types import TRAIN_DATALOADERS
 from functools import partial
 
