@@ -148,39 +148,67 @@ def configure_opt(cfg: Box, model: Model):
     return optimizer, scheduler
 
 
-def main(cfg: Box) -> None:
+# def main(cfg: Box) -> None:
     
-    # fabric = L.Fabric(accelerator="auto",
-    #               devices=cfg.num_devices,
-    #               strategy="auto",
-    #               loggers=[TensorBoardLogger(cfg.out_dir, name="lightning-sam")])
+#     fabric = L.Fabric(accelerator="auto",
+#                   devices=cfg.num_devices,
+#                   strategy="auto",
+#                   loggers=[TensorBoardLogger(cfg.out_dir, name="lightning-sam")])
     
-    fabric = L.Fabric(
-                    accelerator="tpu",  # เปลี่ยน accelerator เป็น "auto_tpu" เพื่อให้ Lightning ใช้ TPU อัตโนมัติ
-                    devices="auto",  # เปลี่ยน devices เป็น "auto" เพื่อให้ Lightning เลือกจำนวน TPU ที่พร้อมใช้งาน
-                    strategy="xla",
-                    loggers=[TensorBoardLogger(cfg.out_dir, name="lightning-sam")]
-                    )
         
-    fabric.launch()
-    fabric.seed_everything(1337 + fabric.global_rank)
+#     fabric.launch()
+#     fabric.seed_everything(1337 + fabric.global_rank)
 
-    if fabric.global_rank == 0:
-        os.makedirs(cfg.out_dir, exist_ok=True)
+#     if fabric.global_rank == 0:
+#         os.makedirs(cfg.out_dir, exist_ok=True)
 
-    with fabric.device:
-        model = Model(cfg)
-        model.setup()
+#     with fabric.device:
+#         model = Model(cfg)
+#         model.setup()
 
-    train_data, val_data = load_datasets(cfg, model.model.image_encoder.img_size)
-    train_data = fabric._setup_dataloader(train_data)
-    val_data = fabric._setup_dataloader(val_data)
+#     train_data, val_data = load_datasets(cfg, model.model.image_encoder.img_size)
+#     train_data = fabric._setup_dataloader(train_data)
+#     val_data = fabric._setup_dataloader(val_data)
 
-    optimizer, scheduler = configure_opt(cfg, model)
-    model, optimizer = fabric.setup(model, optimizer)
+#     optimizer, scheduler = configure_opt(cfg, model)
+#     model, optimizer = fabric.setup(model, optimizer)
 
-    train_sam(cfg, fabric, model, optimizer, scheduler, train_data, val_data)
-    validate(fabric, model, val_data, epoch=0)
+#     train_sam(cfg, fabric, model, optimizer, scheduler, train_data, val_data)
+#     validate(fabric, model, val_data, epoch=0)
+
+from pytorch_lightning.loggers import TensorBoardLogger
+from pytorch_lightning.utilities.types import TRAIN_DATALOADERS, TRAIN_STEPS
+
+def main(cfg: Box) -> None:
+    fabric = L.Fabric(
+        accelerator="tpu",
+        devices="auto",
+        strategy="xla",
+        loggers=[TensorBoardLogger(cfg.out_dir, name="lightning-sam")]
+    )
+
+    def train_fn(cfg, fabric):
+        fabric.seed_everything(1337 + fabric.global_rank)
+
+        if fabric.global_rank == 0:
+            os.makedirs(cfg.out_dir, exist_ok=True)
+
+        with fabric.device:
+            model = Model(cfg)
+            model.setup()
+
+        train_data, val_data = load_datasets(cfg, model.model.image_encoder.img_size)
+        train_data = fabric._setup_dataloader(train_data)
+        val_data = fabric._setup_dataloader(val_data)
+
+        optimizer, scheduler = configure_opt(cfg, model)
+        model, optimizer = fabric.setup(model, optimizer)
+
+        train_sam(cfg, fabric, model, optimizer, scheduler, train_data, val_data)
+        validate(fabric, model, val_data, epoch)  # ตรงนี้หากไม่ได้ให้เพิ่มตัวแปร `epoch` ให้ถูกต้อง
+
+    fabric.launch(train_fn, cfg)
+
 
 ######
 if __name__ == "__main__":
