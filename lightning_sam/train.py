@@ -331,6 +331,10 @@ if __name__ == "__main__":
     parser = create_parser()
     cfg = Box(parser)
     pretty(parser)
-
+    
+    import torch
+    # ตั้งค่าขนาดเส้นผ่าศูนย์ (MB) สำหรับการแบ่ง Tensor
+    torch._C._cuda_split_tensor_max_size_MB = 300
+    
     main(cfg)
 
