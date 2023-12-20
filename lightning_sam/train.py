@@ -209,9 +209,29 @@ def configure_opt(cfg: Box, model: Model):
 #     train_sam(cfg, fabric, model, optimizer, scheduler, train_data, val_data)
 #     validate(fabric, model, val_data, epoch=0)
 
+ffrom pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.utilities.types import TRAIN_DATALOADERS
+from functools import partial
 
-# ...
+def train_fn(cfg, fabric, epoch):
+    fabric.seed_everything(1337 + fabric.global_rank)
+
+    if fabric.global_rank == 0:
+        os.makedirs(cfg.out_dir, exist_ok=True)
+
+    with fabric.device:
+        model = Model(cfg)
+        model.setup()
+
+    train_data, val_data = load_datasets(cfg, model.model.image_encoder.img_size)
+    train_data = fabric._setup_dataloader(train_data)
+    val_data = fabric._setup_dataloader(val_data)
+
+    optimizer, scheduler = configure_opt(cfg, model)
+    model, optimizer = fabric.setup(model, optimizer)
+
+    train_sam(cfg, fabric, model, optimizer, scheduler, train_data, val_data)
+    validate(fabric, model, val_data, epoch)
 
 def main(cfg: Box) -> None:
     fabric = L.Fabric(
@@ -221,27 +241,8 @@ def main(cfg: Box) -> None:
         loggers=[TensorBoardLogger(cfg.out_dir, name="lightning-sam")]
     )
 
-    def train_fn(cfg, fabric):
-        fabric.seed_everything(1337 + fabric.global_rank)
+    fabric.launch(partial(train_fn, cfg), epoch=your_epoch_value)
 
-        if fabric.global_rank == 0:
-            os.makedirs(cfg.out_dir, exist_ok=True)
-
-        with fabric.device:
-            model = Model(cfg)
-            model.setup()
-
-        train_data, val_data = load_datasets(cfg, model.model.image_encoder.img_size)
-        train_data = fabric._setup_dataloader(train_data)
-        val_data = fabric._setup_dataloader(val_data)
-
-        optimizer, scheduler = configure_opt(cfg, model)
-        model, optimizer = fabric.setup(model, optimizer)
-
-        train_sam(cfg, fabric, model, optimizer, scheduler, train_data, val_data)
-        validate(fabric, model, val_data, epoch=cfg.num_epochs - 1)  # แก้ตรงนี้เพื่อให้ epoch ในการ validate ถูกต้อง
-
-    fabric.launch(train_fn, cfg)
 
 
 ######
