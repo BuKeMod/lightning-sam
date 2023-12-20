@@ -158,7 +158,7 @@ def main(cfg: Box) -> None:
     fabric = L.Fabric(
                     accelerator="tpu",  # เปลี่ยน accelerator เป็น "auto_tpu" เพื่อให้ Lightning ใช้ TPU อัตโนมัติ
                     devices="auto",  # เปลี่ยน devices เป็น "auto" เพื่อให้ Lightning เลือกจำนวน TPU ที่พร้อมใช้งาน
-                    strategy="auto",
+                    strategy="xla",
                     loggers=[TensorBoardLogger(cfg.out_dir, name="lightning-sam")]
                     )
         
