@@ -20,39 +20,6 @@ from utils import calc_iou
 torch.set_float32_matmul_precision('high')
 
 
-# def validate(fabric: L.Fabric, model: Model, val_dataloader: DataLoader, epoch: int = 0):
-#     model.eval()
-#     ious = AverageMeter()
-#     f1_scores = AverageMeter()
-
-#     with torch.no_grad():
-#         for iter, data in enumerate(val_dataloader):
-#             images, bboxes, gt_masks = data
-#             num_images = images.size(0)
-#             pred_masks, _ = model(images, bboxes)
-#             for pred_mask, gt_mask in zip(pred_masks, gt_masks):
-#                 batch_stats = smp.metrics.get_stats(
-#                     pred_mask,
-#                     gt_mask.int(),
-#                     mode='binary',
-#                     threshold=0.5,
-#                 )
-#                 batch_iou = smp.metrics.iou_score(*batch_stats, reduction="micro-imagewise")
-#                 batch_f1 = smp.metrics.f1_score(*batch_stats, reduction="micro-imagewise")
-#                 ious.update(batch_iou, num_images)
-#                 f1_scores.update(batch_f1, num_images)
-#             fabric.print(
-#                 f'Val: [{epoch}] - [{iter}/{len(val_dataloader)}]: Mean IoU: [{ious.avg:.4f}] -- Mean F1: [{f1_scores.avg:.4f}]'
-#             )
-
-#     fabric.print(f'Validation [{epoch}]: Mean IoU: [{ious.avg:.4f}] -- Mean F1: [{f1_scores.avg:.4f}]')
-
-#     fabric.print(f"Saving checkpoint to {cfg.out_dir}")
-#     state_dict = model.model.state_dict()
-#     if fabric.global_rank == 0:
-#         torch.save(state_dict, os.path.join(cfg.out_dir, f"epoch-{epoch:06d}-f1{f1_scores.avg:.2f}-ckpt.pth"))
-#     model.train()
-
 def validate(fabric: L.Fabric, model: Model, val_dataloader: DataLoader, epoch: int = 0):
     model.eval()
     ious = AverageMeter()
@@ -85,6 +52,39 @@ def validate(fabric: L.Fabric, model: Model, val_dataloader: DataLoader, epoch: 
     if fabric.global_rank == 0:
         torch.save(state_dict, os.path.join(cfg.out_dir, f"epoch-{epoch:06d}-f1{f1_scores.avg:.2f}-ckpt.pth"))
     model.train()
+
+# def validate(fabric: L.Fabric, model: Model, val_dataloader: DataLoader, epoch: int = 0):
+#     model.eval()
+#     ious = AverageMeter()
+#     f1_scores = AverageMeter()
+
+#     with torch.no_grad():
+#         for iter, data in enumerate(val_dataloader):
+#             images, bboxes, gt_masks = data
+#             num_images = images.size(0)
+#             pred_masks, _ = model(images, bboxes)
+#             for pred_mask, gt_mask in zip(pred_masks, gt_masks):
+#                 batch_stats = smp.metrics.get_stats(
+#                     pred_mask,
+#                     gt_mask.int(),
+#                     mode='binary',
+#                     threshold=0.5,
+#                 )
+#                 batch_iou = smp.metrics.iou_score(*batch_stats, reduction="micro-imagewise")
+#                 batch_f1 = smp.metrics.f1_score(*batch_stats, reduction="micro-imagewise")
+#                 ious.update(batch_iou, num_images)
+#                 f1_scores.update(batch_f1, num_images)
+#             fabric.print(
+#                 f'Val: [{epoch}] - [{iter}/{len(val_dataloader)}]: Mean IoU: [{ious.avg:.4f}] -- Mean F1: [{f1_scores.avg:.4f}]'
+#             )
+
+#     fabric.print(f'Validation [{epoch}]: Mean IoU: [{ious.avg:.4f}] -- Mean F1: [{f1_scores.avg:.4f}]')
+
+#     fabric.print(f"Saving checkpoint to {cfg.out_dir}")
+#     state_dict = model.model.state_dict()
+#     if fabric.global_rank == 0:
+#         torch.save(state_dict, os.path.join(cfg.out_dir, f"epoch-{epoch:06d}-f1{f1_scores.avg:.2f}-ckpt.pth"))
+#     model.train()
 
 ###########
 def data_generator(data_loader):
@@ -181,39 +181,15 @@ def configure_opt(cfg: Box, model: Model):
     return optimizer, scheduler
 
 
-# def main(cfg: Box) -> None:
+def main(cfg: Box) -> None:
     
-#     fabric = L.Fabric(accelerator="auto",
-#                   devices=cfg.num_devices,
-#                   strategy="auto",
-#                   loggers=[TensorBoardLogger(cfg.out_dir, name="lightning-sam")])
+    fabric = L.Fabric(accelerator="cpu",
+                  devices=cfg.num_devices,
+                  strategy="auto",
+                  loggers=[TensorBoardLogger(cfg.out_dir, name="lightning-sam")])
     
         
-#     fabric.launch()
-#     fabric.seed_everything(1337 + fabric.global_rank)
-
-#     if fabric.global_rank == 0:
-#         os.makedirs(cfg.out_dir, exist_ok=True)
-
-#     with fabric.device:
-#         model = Model(cfg)
-#         model.setup()
-
-#     train_data, val_data = load_datasets(cfg, model.model.image_encoder.img_size)
-#     train_data = fabric._setup_dataloader(train_data)
-#     val_data = fabric._setup_dataloader(val_data)
-
-#     optimizer, scheduler = configure_opt(cfg, model)
-#     model, optimizer = fabric.setup(model, optimizer)
-
-#     train_sam(cfg, fabric, model, optimizer, scheduler, train_data, val_data)
-#     validate(fabric, model, val_data, epoch=0)
-
-from pytorch_lightning.loggers import TensorBoardLogger
-from pytorch_lightning.utilities.types import TRAIN_DATALOADERS
-from functools import partial
-
-def train_fn(cfg, fabric, epoch):
+    fabric.launch()
     fabric.seed_everything(1337 + fabric.global_rank)
 
     if fabric.global_rank == 0:
@@ -231,17 +207,41 @@ def train_fn(cfg, fabric, epoch):
     model, optimizer = fabric.setup(model, optimizer)
 
     train_sam(cfg, fabric, model, optimizer, scheduler, train_data, val_data)
-    validate(fabric, model, val_data, epoch)
+    validate(fabric, model, val_data, epoch=0)
 
-def main(cfg: Box) -> None:
-    fabric = L.Fabric(
-        accelerator="tpu",
-        devices="auto",
-        strategy="xla",
-        loggers=[TensorBoardLogger(cfg.out_dir, name="lightning-sam")]
-    )
+# from pytorch_lightning.loggers import TensorBoardLogger
+# from pytorch_lightning.utilities.types import TRAIN_DATALOADERS
+# from functools import partial
 
-    fabric.launch(partial(train_fn, cfg), epoch=cfg.num_epochs)
+# def train_fn(cfg, fabric, epoch):
+#     fabric.seed_everything(1337 + fabric.global_rank)
+
+#     if fabric.global_rank == 0:
+#         os.makedirs(cfg.out_dir, exist_ok=True)
+
+#     with fabric.device:
+#         model = Model(cfg)
+#         model.setup()
+
+#     train_data, val_data = load_datasets(cfg, model.model.image_encoder.img_size)
+#     train_data = fabric._setup_dataloader(train_data)
+#     val_data = fabric._setup_dataloader(val_data)
+
+#     optimizer, scheduler = configure_opt(cfg, model)
+#     model, optimizer = fabric.setup(model, optimizer)
+
+#     train_sam(cfg, fabric, model, optimizer, scheduler, train_data, val_data)
+#     validate(fabric, model, val_data, epoch)
+
+# def main(cfg: Box) -> None:
+#     fabric = L.Fabric(
+#         accelerator="tpu",
+#         devices="auto",
+#         strategy="xla",
+#         loggers=[TensorBoardLogger(cfg.out_dir, name="lightning-sam")]
+#     )
+
+#     fabric.launch(partial(train_fn, cfg), epoch=cfg.num_epochs)
 
 
 
