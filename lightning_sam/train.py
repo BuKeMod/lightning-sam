@@ -53,6 +53,7 @@ def validate(fabric: L.Fabric, model: Model, val_dataloader: DataLoader, epoch: 
         torch.save(state_dict, os.path.join(cfg.out_dir, f"epoch-{epoch:06d}-f1{f1_scores.avg:.2f}-ckpt.pth"))
     model.train()
 
+
 # def validate(fabric: L.Fabric, model: Model, val_dataloader: DataLoader, epoch: int = 0):
 #     model.eval()
 #     ious = AverageMeter()
