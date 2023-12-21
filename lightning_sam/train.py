@@ -116,11 +116,11 @@ def train_sam(
         end = time.time()
         validated = False
 ###########
-        # train_data_generator = data_generator(train_dataloader)
-        # # ลูปโดยใช้ Data Generator
-        # for batch_data in train_data_generator:
-        #     # ทำสิ่งที่คุณต้องการกับ batch_data ที่ได้จาก Data Generator
-        #     images, bboxes, gt_masks = batch_data
+        train_data_generator = data_generator(train_dataloader)
+        # ลูปโดยใช้ Data Generator
+        for batch_data in train_data_generator:
+            # ทำสิ่งที่คุณต้องการกับ batch_data ที่ได้จาก Data Generator
+            images, bboxes, gt_masks = batch_data
 #############
         
         for iter, data in enumerate(train_dataloader):
@@ -129,7 +129,7 @@ def train_sam(
                 validated = True
 
             data_time.update(time.time() - end)
-            images, bboxes, gt_masks = data
+            # images, bboxes, gt_masks = data
             batch_size = images.size(0)
             pred_masks, iou_predictions = model(images, bboxes)
             num_masks = sum(len(pred_mask) for pred_mask in pred_masks)
