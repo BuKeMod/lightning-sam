@@ -240,7 +240,7 @@ def main(cfg: Box) -> None:
     fabric = L.Fabric(
         accelerator="tpu",
         devices="auto",
-        strategy="xla",
+        # strategy="xla",
         loggers=[TensorBoardLogger(cfg.out_dir, name="lightning-sam")]
     )
 
