@@ -251,7 +251,15 @@ def main(cfg: Box) -> None:
 
 from box import Box
 import argparse
-    
+
+def pretty(d, indent=0):
+   for key, value in d.items():
+      print('\t' * indent + str(key))
+      if isinstance(value, dict):
+         pretty(value, indent+1)
+      else:
+         print('\t' * (indent+1) + str(value))
+
 def create_parser():
     parser = argparse.ArgumentParser(description='Your program description')
     
@@ -321,9 +329,11 @@ def create_parser():
                 }
             }
         cfg = Box(configs)
+        pretty(cfg)
         return cfg
     else:
         from config import cfg
+        pretty(cfg)
         return cfg
         
 def pretty(d, indent=0):
@@ -336,6 +346,5 @@ def pretty(d, indent=0):
 
 if __name__ == "__main__":
     cfg = create_parser()
-    pretty(parser)
     main(cfg)
 
