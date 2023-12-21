@@ -20,40 +20,6 @@ from utils import calc_iou
 torch.set_float32_matmul_precision('high')
 
 
-# def validate(fabric: L.Fabric, model: Model, val_dataloader: DataLoader, epoch: int = 0):
-#     model.eval()
-#     ious = AverageMeter()
-#     f1_scores = AverageMeter()
-
-#     with torch.no_grad():
-#         for iter, data in enumerate(val_dataloader):
-#             images, bboxes, gt_masks = data
-#             num_images = images.size(0)
-#             pred_masks, _ = model(images, bboxes)
-#             for pred_mask, gt_mask in zip(pred_masks, gt_masks):
-#                 batch_stats = smp.metrics.get_stats(
-#                     pred_mask,
-#                     gt_mask.int(),
-#                     mode='binary',
-#                     threshold=0.5,
-#                 )
-#                 batch_iou = smp.metrics.iou_score(*batch_stats, reduction="micro-imagewise")
-#                 batch_f1 = smp.metrics.f1_score(*batch_stats, reduction="micro-imagewise")
-#                 ious.update(batch_iou, num_images)
-#                 f1_scores.update(batch_f1, num_images)
-#             fabric.print(
-#                 f'Val: [{epoch}] - [{iter}/{len(val_dataloader)}]: Mean IoU: [{ious.avg:.4f}] -- Mean F1: [{f1_scores.avg:.4f}]'
-#             )
-
-#     fabric.print(f'Validation [{epoch}]: Mean IoU: [{ious.avg:.4f}] -- Mean F1: [{f1_scores.avg:.4f}]')
-
-#     fabric.print(f"Saving checkpoint to {cfg.out_dir}")
-#     state_dict = model.model.state_dict()
-#     if fabric.global_rank == 0:
-#         torch.save(state_dict, os.path.join(cfg.out_dir, f"epoch-{epoch:06d}-f1{f1_scores.avg:.2f}-ckpt.pth"))
-#     model.train()
-
-
 def validate(fabric: L.Fabric, model: Model, val_dataloader: DataLoader, epoch: int = 0):
     model.eval()
     ious = AverageMeter()
@@ -86,6 +52,40 @@ def validate(fabric: L.Fabric, model: Model, val_dataloader: DataLoader, epoch: 
     if fabric.global_rank == 0:
         torch.save(state_dict, os.path.join(cfg.out_dir, f"epoch-{epoch:06d}-f1{f1_scores.avg:.2f}-ckpt.pth"))
     model.train()
+
+
+# def validate(fabric: L.Fabric, model: Model, val_dataloader: DataLoader, epoch: int = 0):
+#     model.eval()
+#     ious = AverageMeter()
+#     f1_scores = AverageMeter()
+
+#     with torch.no_grad():
+#         for iter, data in enumerate(val_dataloader):
+#             images, bboxes, gt_masks = data
+#             num_images = images.size(0)
+#             pred_masks, _ = model(images, bboxes)
+#             for pred_mask, gt_mask in zip(pred_masks, gt_masks):
+#                 batch_stats = smp.metrics.get_stats(
+#                     pred_mask,
+#                     gt_mask.int(),
+#                     mode='binary',
+#                     threshold=0.5,
+#                 )
+#                 batch_iou = smp.metrics.iou_score(*batch_stats, reduction="micro-imagewise")
+#                 batch_f1 = smp.metrics.f1_score(*batch_stats, reduction="micro-imagewise")
+#                 ious.update(batch_iou, num_images)
+#                 f1_scores.update(batch_f1, num_images)
+#             fabric.print(
+#                 f'Val: [{epoch}] - [{iter}/{len(val_dataloader)}]: Mean IoU: [{ious.avg:.4f}] -- Mean F1: [{f1_scores.avg:.4f}]'
+#             )
+
+#     fabric.print(f'Validation [{epoch}]: Mean IoU: [{ious.avg:.4f}] -- Mean F1: [{f1_scores.avg:.4f}]')
+
+#     fabric.print(f"Saving checkpoint to {cfg.out_dir}")
+#     state_dict = model.model.state_dict()
+#     if fabric.global_rank == 0:
+#         torch.save(state_dict, os.path.join(cfg.out_dir, f"epoch-{epoch:06d}-f1{f1_scores.avg:.2f}-ckpt.pth"))
+#     model.train()
 
 ###########
 def data_generator(data_loader):
@@ -184,39 +184,15 @@ def configure_opt(cfg: Box, model: Model):
     return optimizer, scheduler
 
 
-# def main(cfg: Box) -> None:
+def main(cfg: Box) -> None:
     
-#     fabric = L.Fabric(accelerator="auto",
-#                   devices=cfg.num_devices,
-#                   strategy="auto",
-#                   loggers=[TensorBoardLogger(cfg.out_dir, name="lightning-sam")])
+    fabric = L.Fabric(accelerator="auto",
+                  devices=cfg.num_devices,
+                  strategy="auto",
+                  loggers=[TensorBoardLogger(cfg.out_dir, name="lightning-sam")])
     
         
-#     fabric.launch()
-#     fabric.seed_everything(1337 + fabric.global_rank)
-
-#     if fabric.global_rank == 0:
-#         os.makedirs(cfg.out_dir, exist_ok=True)
-
-#     with fabric.device:
-#         model = Model(cfg)
-#         model.setup()
-
-#     train_data, val_data = load_datasets(cfg, model.model.image_encoder.img_size)
-#     train_data = fabric._setup_dataloader(train_data)
-#     val_data = fabric._setup_dataloader(val_data)
-
-#     optimizer, scheduler = configure_opt(cfg, model)
-#     model, optimizer = fabric.setup(model, optimizer)
-
-#     train_sam(cfg, fabric, model, optimizer, scheduler, train_data, val_data)
-#     validate(fabric, model, val_data, epoch=0)
-
-from pytorch_lightning.loggers import TensorBoardLogger
-from pytorch_lightning.utilities.types import TRAIN_DATALOADERS
-from functools import partial
-
-def train_fn(cfg, fabric, epoch):
+    fabric.launch()
     fabric.seed_everything(1337 + fabric.global_rank)
 
     if fabric.global_rank == 0:
@@ -234,59 +210,83 @@ def train_fn(cfg, fabric, epoch):
     model, optimizer = fabric.setup(model, optimizer)
 
     train_sam(cfg, fabric, model, optimizer, scheduler, train_data, val_data)
-    validate(fabric, model, val_data, epoch)
+    validate(fabric, model, val_data, epoch=0)
 
-def main(cfg: Box) -> None:
-    fabric = L.Fabric(
-        accelerator="tpu",
-        devices="auto",
-        # strategy="xla",
-        loggers=[TensorBoardLogger(cfg.out_dir, name="lightning-sam")]
-    )
+# from pytorch_lightning.loggers import TensorBoardLogger
+# from pytorch_lightning.utilities.types import TRAIN_DATALOADERS
+# from functools import partial
 
-    fabric.launch(partial(train_fn, cfg), epoch=cfg.num_epochs)
+# def train_fn(cfg, fabric, epoch):
+#     fabric.seed_everything(1337 + fabric.global_rank)
 
+#     if fabric.global_rank == 0:
+#         os.makedirs(cfg.out_dir, exist_ok=True)
+
+#     with fabric.device:
+#         model = Model(cfg)
+#         model.setup()
+
+#     train_data, val_data = load_datasets(cfg, model.model.image_encoder.img_size)
+#     train_data = fabric._setup_dataloader(train_data)
+#     val_data = fabric._setup_dataloader(val_data)
+
+#     optimizer, scheduler = configure_opt(cfg, model)
+#     model, optimizer = fabric.setup(model, optimizer)
+
+#     train_sam(cfg, fabric, model, optimizer, scheduler, train_data, val_data)
+#     validate(fabric, model, val_data, epoch)
+
+# def main(cfg: Box) -> None:
+#     fabric = L.Fabric(
+#         accelerator="tpu",
+#         devices="auto",
+#         # strategy="xla",
+#         loggers=[TensorBoardLogger(cfg.out_dir, name="lightning-sam")]
+#     )
+
+#     fabric.launch(partial(train_fn, cfg), epoch=cfg.num_epochs)
 
 
 ######
-if __name__ == "__main__":
-    from box import Box
-    import argparse
-    
-    def create_parser():
-        parser = argparse.ArgumentParser(description='Your program description')
 
-        # Training configuration
-        parser.add_argument('--num_devices', type=int, default=1, help='Number of devices')
-        parser.add_argument('--batch_size', type=int, default=12, help='Batch size')
-        parser.add_argument('--num_workers', type=int, default=4, help='Number of workers')
-        parser.add_argument('--num_epochs', type=int, default=20, help='Number of epochs')
-        parser.add_argument('--eval_interval', type=int, default=2, help='Evaluation interval')
-        parser.add_argument('--out_dir', type=str, default='/kaggle/working/training', help='Output directory')
+from box import Box
+import argparse
     
-        # Optimization configuration
-        parser.add_argument('--learning_rate', type=float, default=8e-4, help='Learning rate')
-        parser.add_argument('--weight_decay', type=float, default=1e-4, help='Weight decay')
-        parser.add_argument('--decay_factor', type=int, default=10, help='Decay factor')
-        parser.add_argument('--steps', type=list, default=[60000, 86666], help='Steps')
-        parser.add_argument('--warmup_steps', type=int, default=250, help='Warmup steps')
+def create_parser():
+    parser = argparse.ArgumentParser(description='Your program description')
     
-        # Model configuration
-        parser.add_argument('--model_type', type=str, default='vit_b', help='Type of the model')
-        parser.add_argument('--checkpoint', type=str, default='/kaggle/working/sam_vit_b_01ec64.pth', help='Checkpoint file path')
-        parser.add_argument('--freeze_image_encoder', type=bool, default=True, help='Freeze image encoder')
-        parser.add_argument('--freeze_prompt_encoder', type=bool, default=True, help='Freeze prompt encoder')
-        parser.add_argument('--freeze_mask_decoder', type=bool, default=False, help='Freeze mask decoder')
-    
-        # Dataset configuration
-        parser.add_argument('--train_root_dir', type=str, default='/kaggle/working/Crop-Fields-LOD-13-14-15-4/train/', help='Root directory for training data')
-        parser.add_argument('--train_annotation_file', type=str, default='/kaggle/working/Crop-Fields-LOD-13-14-15-4/train/sa_Tannotationscoco.json', help='Annotation file for training data')
-        parser.add_argument('--val_root_dir', type=str, default='/kaggle/working/Crop-Fields-LOD-13-14-15-4/valid/', help='Root directory for validation data')
-        parser.add_argument('--val_annotation_file', type=str, default='/kaggle/working/Crop-Fields-LOD-13-14-15-4/valid/sa_Vannotationscoco.json', help='Annotation file for validation data')
+    parser.add_argument('--con_active', type=bool, default=False, help='use args config')
+    # Training configuration
+    parser.add_argument('--num_devices', type=int, default=1, help='Number of devices')
+    parser.add_argument('--batch_size', type=int, default=12, help='Batch size')
+    parser.add_argument('--num_workers', type=int, default=4, help='Number of workers')
+    parser.add_argument('--num_epochs', type=int, default=20, help='Number of epochs')
+    parser.add_argument('--eval_interval', type=int, default=2, help='Evaluation interval')
+    parser.add_argument('--out_dir', type=str, default='/kaggle/working/training', help='Output directory')
 
-        args = parser.parse_args()
+    # Optimization configuration
+    parser.add_argument('--learning_rate', type=float, default=8e-4, help='Learning rate')
+    parser.add_argument('--weight_decay', type=float, default=1e-4, help='Weight decay')
+    parser.add_argument('--decay_factor', type=int, default=10, help='Decay factor')
+    parser.add_argument('--steps', type=list, default=[60000, 86666], help='Steps')
+    parser.add_argument('--warmup_steps', type=int, default=250, help='Warmup steps')
 
-        config = {
+    # Model configuration
+    parser.add_argument('--model_type', type=str, default='vit_b', help='Type of the model')
+    parser.add_argument('--checkpoint', type=str, default='/kaggle/working/sam_vit_b_01ec64.pth', help='Checkpoint file path')
+    parser.add_argument('--freeze_image_encoder', type=bool, default=True, help='Freeze image encoder')
+    parser.add_argument('--freeze_prompt_encoder', type=bool, default=True, help='Freeze prompt encoder')
+    parser.add_argument('--freeze_mask_decoder', type=bool, default=False, help='Freeze mask decoder')
+
+    # Dataset configuration
+    parser.add_argument('--train_root_dir', type=str, default='/kaggle/working/Crop-Fields-LOD-13-14-15-4/train/', help='Root directory for training data')
+    parser.add_argument('--train_annotation_file', type=str, default='/kaggle/working/Crop-Fields-LOD-13-14-15-4/train/sa_Tannotationscoco.json', help='Annotation file for training data')
+    parser.add_argument('--val_root_dir', type=str, default='/kaggle/working/Crop-Fields-LOD-13-14-15-4/valid/', help='Root directory for validation data')
+    parser.add_argument('--val_annotation_file', type=str, default='/kaggle/working/Crop-Fields-LOD-13-14-15-4/valid/sa_Vannotationscoco.json', help='Annotation file for validation data')
+
+    args = parser.parse_args()
+    if args.con_active == True :
+        configs = {
                 "num_devices": args.num_devices,
                 "batch_size": args.batch_size,
                 "num_workers": args.num_workers,
@@ -320,23 +320,22 @@ if __name__ == "__main__":
                     }
                 }
             }
-
+        cfg = Box(configs)
+        return cfg
+    else:
+        from config import cfg
+        return cfg
         
-        return config
-    def pretty(d, indent=0):
-       for key, value in d.items():
-          print('\t' * indent + str(key))
-          if isinstance(value, dict):
-             pretty(value, indent+1)
-          else:
-             print('\t' * (indent+1) + str(value))
-    parser = create_parser()
-    cfg = Box(parser)
+def pretty(d, indent=0):
+   for key, value in d.items():
+      print('\t' * indent + str(key))
+      if isinstance(value, dict):
+         pretty(value, indent+1)
+      else:
+         print('\t' * (indent+1) + str(value))
+
+if __name__ == "__main__":
+    cfg = create_parser()
     pretty(parser)
-    
-    # import torch
-    # # ตั้งค่าขนาดเส้นผ่าศูนย์ (MB) สำหรับการแบ่ง Tensor
-    # torch._C._cuda_split_tensor_max_size_MB = 300
-    
     main(cfg)
 
